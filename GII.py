@@ -9,7 +9,7 @@ Created on Fri Oct  6 11:08:42 2017
 
 import numpy as np
 from pymatgen import Structure
-from pymatgen.io.vaspio import Poscar
+from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from scipy.optimize import minimize
 import itertools, time
@@ -220,7 +220,7 @@ args = parser.parse_args()
 invars = Conf(args.input)
 '''
 # file path
-fpath = "/home/nenian/git/projects/code-projects/gii_minimizer/test_structures/BTO_test_str.vasp"
+fpath = "./BTO_test_str.vasp"
 
 '''Read structure from file POSCAR or cif'''
 try:    
@@ -263,7 +263,7 @@ Formal_Valence = {'K':1, 'Na':1, 'Nb':5, 'Pb':2, 'Ba':2, 'Ca':2, 'Ti':4, 'O':2, 
 ''' Define args for minimizer. '''
 
 num_atoms = structure.composition.num_atoms # number of atoms in cell
-lattice = structure.lattice_vectors() # lattice vectors
+lattice = structure.lattice() # lattice vectors
 # Check and save space group number
 space_group = SpacegroupAnalyzer(structure, symprec=0.01).get_spacegroup_number()
 # wyckoff list used to sets bounds for space group symmetries
@@ -306,7 +306,7 @@ for i in range(len(structure.frac_coords)):
             max_fractional_displacement+structure.frac_coords[i][j]),
 
 '''Print space goup number. This should be in the output file'''
-print "The space group of the structure is {}".format(space_group)
+print("The space group of the structure is {}".format(space_group))
 
 '''Flatten fractional coordinates of intial (input) structure to vector. 
 Vectors are the standard format that the minimizer can understand. '''
@@ -326,4 +326,4 @@ out_structure = Structure(lattice, Species_list, relaxed_coordinates)
 w = Poscar(out_structure)
 w.write_file("out_ErNiO3_ions-l-b.vasp")
 
-print time.time() - start_time
+print(time.time() - start_time)
