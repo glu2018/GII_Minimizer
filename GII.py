@@ -13,6 +13,7 @@ from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from scipy.optimize import minimize
 import itertools, time
+from pymatgen import IStructure
 import argparse
 
 def isanion(atom, anions):
@@ -44,9 +45,7 @@ def gii_fun(x, *args):
     center_atom_in_regular_poly = args[11]
     max_angle = args[12]
     nearest_neighbor_distance = args[13]
-    
-    struct = Structure(lattice, Species_list, x.reshape(num_atoms,3))
-    
+    struct = IStructure(lattice, Species_list, x.reshape(int(num_atoms),3))
     pymat_neighbors = struct.get_all_neighbors(cutoff_distance, include_index=True)
     
     values_BV = []
@@ -57,16 +56,13 @@ def gii_fun(x, *args):
             
             atom = struct.species[atom_indx].symbol 
             neighbor = struct.species[pair_data[2]].symbol
-            
             if iscation(atom, cations) and isanion(neighbor, anions):
-#                 
                 bv += np.exp((BVpara[atom][neighbor]- pair_data[1])/b0)
             elif iscation(neighbor, cations) and isanion(atom,anions):
                 
                 bv += np.exp((BVpara[neighbor][atom]- pair_data[1])/b0)
         values_BV.append((Formal_Valence[struct.species[atom_indx].symbol] - bv)**2)
-    
-    
+
     GII_val = np.sqrt((sum(values_BV[:]))/struct.composition.num_atoms)
     #print "curent GII = {}".format(GII_val) 
     return GII_val
@@ -96,7 +92,7 @@ def angle_fun(x, *args):
     
     E_angle = 0
 
-    pymat_structure = Structure(lattice, Species_list, x.reshape(num_atoms,3))
+    pymat_structure = Structure(lattice, Species_list, x.reshape(int(num_atoms),3))
 
     for i, ion in enumerate(Species_list):
         
@@ -151,9 +147,9 @@ def chksym(x,*args):
     max_angle = args[12]  
     nearest_neighbor_distance = args[13]    
 
-    pymat_structure = Structure(lattice, Species_list, x.reshape(num_atoms,3))
+    pymat_structure = Structure(lattice, Species_list, x.reshape(int(num_atoms),3))
     
-    current_SG = SpacegroupAnalyzer(pymat_structure, symprec=0.01).get_spacegroup_number()
+    current_SG = SpacegroupAnalyzer(pymat_structure, symprec=0.01).get_space_group_number()
     #print current_SG
     if int(current_SG) is int(space_group):
         val = 0
@@ -182,7 +178,7 @@ def anion_inter(x, *args):
     nearest_neighbor_distance = args[13]    
     Shannon_anion_anion = args[14]
     
-    pymat_structure = Structure(lattice, Species_list, x.reshape(num_atoms,3))
+    pymat_structure = Structure(lattice, Species_list, x.reshape(int(num_atoms),3))
         
     anions_indx = pymat_structure.indices_from_symbol(anions[0])
     logic = 0
@@ -263,9 +259,10 @@ Formal_Valence = {'K':1, 'Na':1, 'Nb':5, 'Pb':2, 'Ba':2, 'Ca':2, 'Ti':4, 'O':2, 
 ''' Define args for minimizer. '''
 
 num_atoms = structure.composition.num_atoms # number of atoms in cell
-lattice = structure.lattice() # lattice vectors
+lattice = structure.lattice.matrix # lattice vectors
+print(lattice)
 # Check and save space group number
-space_group = SpacegroupAnalyzer(structure, symprec=0.01).get_spacegroup_number()
+space_group = SpacegroupAnalyzer(structure, symprec=0.01).get_space_group_number()
 # wyckoff list used to sets bounds for space group symmetries
 wycks = SpacegroupAnalyzer(structure, symprec=0.01).get_symmetry_dataset()['wyckoffs'] 
 Species_list = structure.species #list of ion names. 
@@ -320,10 +317,10 @@ res = minimize(minime, x0,args=myargs, method='SLSQP', bounds = bnds, options={'
 
 '''Outputs: These should be written to file'''
 #output ion coordinates after minimization must be reshaped
-relaxed_coordinates = res.x.reshape(num_atoms,3) 
+#relaxed_coordinates = res.x.reshape(num_atoms,3)
 '''output relaxed structure as POSCAR type file'''
-out_structure = Structure(lattice, Species_list, relaxed_coordinates)
-w = Poscar(out_structure)
-w.write_file("out_ErNiO3_ions-l-b.vasp")
+#out_structure = Structure(lattice, Species_list, relaxed_coordinates)
+#w = Poscar(out_structure)
+#w.write_file("out_ErNiO3_ions-l-b.vasp")
 
 print(time.time() - start_time)
