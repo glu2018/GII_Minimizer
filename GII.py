@@ -316,7 +316,7 @@ res = minimize(minime, x0,args=myargs, method='SLSQP', bounds = bnds, options={'
 
 '''Outputs: These should be written to file'''
 #output ion coordinates after minimization must be reshaped
-#relaxed_coordinates = res.x.reshape(num_atoms,3)
+relaxed_coordinates = res.x.reshape(int(num_atoms),3)
 '''output relaxed structure as POSCAR type file'''
 #out_structure = Structure(lattice, Species_list, relaxed_coordinates)
 #w = Poscar(out_structure)
