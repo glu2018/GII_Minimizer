@@ -13,7 +13,6 @@ from pymatgen.io.vasp.inputs import Poscar
 from pymatgen.symmetry.analyzer import SpacegroupAnalyzer
 from scipy.optimize import minimize
 import itertools, time
-from pymatgen import IStructure
 import argparse
 
 def isanion(atom, anions):
@@ -45,7 +44,7 @@ def gii_fun(x, *args):
     center_atom_in_regular_poly = args[11]
     max_angle = args[12]
     nearest_neighbor_distance = args[13]
-    struct = IStructure(lattice, Species_list, x.reshape(int(num_atoms),3))
+    struct = Structure(lattice, Species_list, x.reshape(int(num_atoms),3))
     pymat_neighbors = struct.get_all_neighbors(cutoff_distance, include_index=True)
     
     values_BV = []
